@@ -107,7 +107,7 @@ void Character::beatMonster(int exp) {
 
 class Warrior : public Character {
 private:
-    static const int HP_LV = 100;
+    static const int HP_LV = 50;
     static const int MP_LV = 30;
     static const int PO_LV = 10;
     static const int KN_LV = 5;
@@ -126,7 +126,7 @@ public:
 
 class Wizard : public Character {
 private:
-    static const int HP_LV = 80;
+    static const int HP_LV = 30;
     static const int MP_LV = 100;
     static const int PO_LV = 4;
     static const int KN_LV = 15;
@@ -147,12 +147,12 @@ class Monster : public Character {
 private:
     static const int HP_LV = 80;
     static const int MP_LV = 100;
-    static const int PO_LV = 500;
+    static const int PO_LV = 5;
     static const int KN_LV = 15;
     static const int LU_LV = 7;
 
 public:
-    Monster(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV, lv * KN_LV, lv * LU_LV) {}
+    Monster(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV * (1 + (lv - 1) * 0.2), lv * KN_LV, lv * LU_LV) {}
     void print() { cout << "Monster: HP=" << hp << ", Attack=" << power << endl; }
     int getAttack() { return power; }
     int getExp(int luck);
@@ -160,7 +160,7 @@ public:
 };
 
 int Monster::getExp(int luck) {
-    return this->level * 100 + rand() % luck;
+    return this->level * 300 + rand() % luck;
 }
 
 int Monster::getMoney(int luck) {
@@ -339,9 +339,13 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
     while (monster->getHP() > 0 && !playerLose) {
         monster->print();
         int targetIndex = getRandenNum(memberCount, unableToSelect, memberCount);
+        int totalDamage = monster->getAttack();
+        if(actions[targetIndex] == 2){
+            totalDamage *= 0.2;
+        }
         Character* target = playerTeam->getMember(targetIndex);
-        target->setHP(target->getHP() - monster->getAttack());
-        cout << "Monster attacks " << targetIndex + 1 << ". " << target->getName() << " for " << monster->getAttack() << " damage!\n" << endl;
+        target->setHP(target->getHP() - totalDamage);
+        cout << "Monster attacks " << targetIndex + 1 << ". " << target->getName() << " for " << totalDamage << " damage!\n" << endl;
 
         // ?查??是否全部?亡
         playerLose = true;
@@ -418,37 +422,6 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
 
     return playerLose;
 }
-
-// bool battle(Character* player, Monster* monster, int& money) {
-//     bool playerLose = true;
-//     while (player->getHP() > 0 && monster->getHP() > 0) {
-
-//         monster->print();
-//         player->print();
-//         wait("Press enter to attack...");
-
-//         monster->setHP(monster->getHP() - player->getAttack());
-//         if (monster->getHP() <= 0) {
-//             player->beatMonster(monster->getExp(player->getLuck()));
-//             money += monster->getMoney(player->getLuck());
-//             playerLose = false;
-//             break;
-//         }
-
-//         player->setHP(player->getHP() - monster->getAttack());
-//         if (player->getHP() <= 0) break;
-//     }
-
-//     cout << (playerLose ? "You lose!" : "You win!") << "\n" << endl;
-
-//     if(!playerLose){
-//         cout << "You got " << monster->getExp(player->getLuck()) << " exp and " << monster->getMoney(player->getLuck()) << " gold\n";
-//         cout << "You now have " << money << " gold\n";
-//         player->print();
-//     }
-
-//     return playerLose;
-// }
 
 void shop(Team* playerTeam, int& money) {
     const int shopItem = 3;
@@ -548,18 +521,30 @@ void summon(Team* playerTeam, int& money, int& monsterCount) {
 
     cout << "Enter new member name: ";
     string name;
+    cin.ignore();
     getline(cin, name);
 
     cout << "\033[2J\033[1;1H";
 
+    if (money < 50 + monsterCount * 10) {
+        cout << "Not enough gold!\n";
+        wait();
+        return;
+    }
+
     if(choice == 1){
         playerTeam->addWarrior(name, monsterCount + 1);
-    }
-    else{
+    } else if (choice == 2) {
         playerTeam->addWizard(name, monsterCount + 1);
+    } else if (choice == 0) {
+        return;
+    } else {
+        cout << "Invalid choice!\n";
+        wait();
+        summon(playerTeam, money, monsterCount);
     }
     playerTeam->print();
-    wait("Press enter to continue...");
+    wait();
 }
 
 int main() {
@@ -595,15 +580,9 @@ int main() {
     int eventCount = 0;
     int limitEvent[2] = {-1, -1};
 
-    // shop(&playerParty, money);
-    // battle(&playerParty, new Monster("bird", 1), money);
-    // summon(&playerParty, money, monsterCount);
-    // summon(&playerParty, money, monsterCount);
-
-
     while (1) {
         int event = getRandenNum(EVENT_AMOUNT, limitEvent, EVENT_AMOUNT);
-        if(eventCount % 3 == 0){
+        if(eventCount % 3 == 0 && eventCount != 0){
             event = 0;
         }
 
