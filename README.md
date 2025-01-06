@@ -170,9 +170,9 @@ Healer的普通傷害是1倍的POWER
 
 戰鬥會一直持續直到怪物死亡或所有英雄HP歸零
 
-如果所有英雄HP歸零 GAME OVER!!
+如果所有英雄HP歸零 GAME OVER!!  
 如果怪物死亡將會獲得:  
-400*打怪次數的exp 和 50*打怪次數+1的gold
+400\times打怪次數的exp 和 50\times打怪次數+1的gold
 exp會平分給所有英雄
 
 ***
