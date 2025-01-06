@@ -611,9 +611,10 @@ void Healer::active(char activeCode, Character* monster, Team* playerTeam){
     }
 }
 
+// wait for user to press enter
 void wait()
 {
-    cout << "Press enter to continue..." << endl;
+    cout << "Press anyKey to continue..." << endl;
     getch();
 }
 
@@ -623,6 +624,7 @@ void wait(string s)
     getch();
 }
 
+// get a random number from 0 to maxNum, except limitNum
 int getRandenNum(int maxNum, int limitNum) {
     int randenNum = rand() % maxNum;
     while (randenNum == limitNum) {
@@ -631,6 +633,7 @@ int getRandenNum(int maxNum, int limitNum) {
     return randenNum;
 }
 
+// get a random number from 0 to maxNum, except limitList
 int getRandenNum(int maxNum, int limitList[], int len){
     while (1) {
         int randenNum = rand() % maxNum;
@@ -647,7 +650,7 @@ int getRandenNum(int maxNum, int limitList[], int len){
     }
 }
 
-
+// limit the choice to a valid number
 int limitChoose(int maxNum, int minNum) {
     int choice;
     cin >> choice;
@@ -658,6 +661,7 @@ int limitChoose(int maxNum, int minNum) {
     return choice;
 }
 
+// print the skill list
 void printSkillList(vector<Skill> skills) {
     for (int i = 0; i < skills.size(); i++) {
         cout << i + 1 << ". ";
@@ -665,6 +669,7 @@ void printSkillList(vector<Skill> skills) {
     }
 }
 
+// get the skill list by class type
 vector<Skill>* getskillsByClass(vector<Skill> skills, int classType) {
     vector<Skill>* skillList = new vector<Skill>();
     for (int i = 0; i < skills.size(); i++) {
@@ -675,6 +680,7 @@ vector<Skill>* getskillsByClass(vector<Skill> skills, int classType) {
     return skillList;
 }
 
+// battle function
 bool battle(Team* playerTeam, Monster* monster, int& money) {
     bool playerLose = false;
 
@@ -798,6 +804,7 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
     return playerLose;
 }
 
+// shop function
 void shop(Team* playerTeam, int& money) {
     const int shopItem = 3;
     int memberChoice = -1;
@@ -933,6 +940,7 @@ void shop(Team* playerTeam, int& money) {
 
 }
 
+// summon function
 void summon(Team* playerTeam, int& money, int& monsterCount) {
     const int summonCost = 50 + monsterCount * 10; // Increase cost with each monster
 
@@ -984,6 +992,7 @@ void summon(Team* playerTeam, int& money, int& monsterCount) {
     wait();
 }
 
+// training function
 void training(Team* playerTeam, int& money, vector<Skill> skills) {
     cout << "You have a chance to train your hero!\n";
     cout << "You have " << money << " gold\n";
@@ -1026,6 +1035,7 @@ void training(Team* playerTeam, int& money, vector<Skill> skills) {
     delete skillsByClass;
 }
 
+// Initialize skills
 vector<Skill> initializeSkills() {
     return {
         Skill("Warrior roar", "Deals danage equal to 200% power damage", 1, 30, 0, 0, 0, 2, 0, 0, 1),
@@ -1037,6 +1047,7 @@ vector<Skill> initializeSkills() {
     };
 }
 
+// Main function
 int main() {
     srand(time(0)); // Seed the random number generator
     const int EVENT_AMOUNT = 5; // Number of possible events
