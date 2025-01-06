@@ -819,8 +819,8 @@ void shop(Team* playerTeam, int& money) {
         cout << "You have " << money << " gold\n";
         cout << "1. Heal Potion +50HP (20 gold)\n";
         cout << "2. MP potion +50MP (20 gold)\n";
-        cout << "3. Power Boost +5%Power (60 gold)\n";
-        cout << "4. knowledge Boost +5%knoledge (60 gold)\n";
+        cout << "3. Power Boost +5%Power (50 gold)\n";
+        cout << "4. knowledge Boost +5%knoledge (50 gold)\n";
         cout << "0. Exit shop\nChoose an option: ";
         int choice;
         cin >> choice;
