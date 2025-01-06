@@ -123,6 +123,7 @@ Healer的普通傷害是1倍的POWER
 3. Power Boost +5%POWER (50gold)
 4. Knowledge Boost +5%KNOWLEDGE (50gold)
 
+購買玩商品必須直接使用  
 你可以重複買東西直到你退出商店
 
 ### 2. 召喚英雄
