@@ -26,10 +26,10 @@ void wait(string s);
 int getRandenNum(int maxNum, int limitNum);
 int getRandenNum(int maxNum, int limitList[], int len);
 int limitChoose(int maxNum, int minNum);
+vector<Skill>* getskillsByClass(vector<Skill> skills, int classType);
 void summon(Team* playerTeam, int& money, int& monsterCount);
 void training(Team* playerTeam, int& money, vector<Skill> skills);
 void printSkillList(vector<Skill> skills);
-vector<Skill>* getskillsByClass(vector<Skill> skills, int classType);
 
 class Skill {
     private:
@@ -46,29 +46,8 @@ class Skill {
         int costType; // 0: costMp, 1: costHp, 2: setHp, 3: setMp
 
     public:
-        Skill(string n, string des, int id, int cMp, int cHp, int sHp, int sMp, double effect ,int targetType, int cType, int classType) {
-            this->id = id;
-            this->des = des;
-            this->classType = classType;
-            this->name = n;
-            this->costMp = cMp;
-            this->costHp = cHp;
-            this->setHp = sHp;
-            this->setMp = sMp;
-            this->effect = effect;
-            this->targetType = targetType;
-            this->costType = cType;
-        }
+        Skill(string n, string des, int id, int cMp, int cHp, int sHp, int sMp, double effect ,int targetType, int cType, int classType);
         string getName() { return name; }
-        void operator=(Skill s) {
-            this->id = s.id;
-            this->name = s.name;
-            this->costMp = s.costMp;
-            this->costHp = s.costHp;
-            this->setHp = s.setHp;
-            this->setMp = s.setMp;
-            this->costType = s.costType;
-        }
         int getId() { return id; }
         int getClassType() { return classType; }
         int getCostMp() { return costMp; }
@@ -77,22 +56,53 @@ class Skill {
         int getSetHp() { return setHp; }
         int getcostType() { return costType; }
         double getEffect() { return effect; }
-        void print() {
-            cout << name << " " ;
-            if(costType == 0){
-                cout << "(MP: " << costMp << ") ";
-            } else if (costType == 1) {
-                cout << "(HP: " << costHp << ") ";
-            } else if (costType == 2) {
-                cout << "(Set HP to " << setHp << ") ";
-            } else if (costType == 3) {
-                cout << "(Set MP to " << setMp << ") ";
-            }
-
-            cout << endl;
-            cout << des << endl;
-        }
+        void operator=(Skill s);
+        void print();
 };
+
+Skill::Skill(string n, string des, int id, int cMp, int cHp, int sHp, int sMp, double effect ,int targetType, int cType, int classType){
+    this->id = id;
+    this->des = des;
+    this->classType = classType;
+    this->name = n;
+    this->costMp = cMp;
+    this->costHp = cHp;
+    this->setHp = sHp;
+    this->setMp = sMp;
+    this->effect = effect;
+    this->targetType = targetType;
+    this->costType = cType;
+}
+
+void Skill::operator=(Skill s) {
+    this->id = s.id;
+    this->name = s.name;
+    this->costMp = s.costMp;
+    this->costHp = s.costHp;
+    this->setHp = s.setHp;
+    this->setMp = s.setMp;
+    this->costType = s.costType;
+}
+
+void Skill::print() {
+    cout << name << " ";
+    switch (costType) {
+    case 0:
+        cout << "(MP: " << costMp << ") ";
+        break;
+    case 1:
+        cout << "(HP: " << costHp << ") ";
+        break;
+    case 2:
+        cout << "(Set HP to " << setHp << ") ";
+        break;
+    case 3:
+        cout << "(Set MP to " << setMp << ") ";
+        break;
+    }
+    cout << endl;
+    cout << des << endl;
+}
 
 class Character {
 protected:
@@ -115,6 +125,7 @@ protected:
     void levelUp(int hInc, int mInc, int pInc, int kInc, int lInc);
 
 public:
+    Character();
     Character(string n, int lv, int h, int maxMp, int po, int kn, int lu);
     virtual void print();
     virtual void beatMonster(int exp);
@@ -137,9 +148,30 @@ public:
         int updateHp = min(this->maxHp, this->hp + amount); 
         this->hp = updateHp;
     }
+    void replyMP(int amount) { 
+        int updateMp = min(this->maxMp, this->mp + amount); 
+        this->mp = updateMp;
+    }
     void boostPower() { powerBoost++; }
     void boostKnowledge() { knowledgeBoost++; }
 };
+
+Character::Character(){
+    this->name = "No Name";
+    this->level = 1;
+    this->exp = 0;
+    this->power = 0;
+    this->knowledge = 0;
+    this->luck = 0;
+    this->maxHp = 0;
+    this->hp = this->maxHp;
+    this->maxMp = 0;
+    this->mp = this->maxMp;
+    this->powerBoost = 0;
+    this->knowledgeBoost = 0;
+    this->activeCode = '0';
+    this->target = -1;
+}
 
 Character::Character(string n, int lv, int h, int maxMp, int po, int kn, int lu){
     this->name = n;
@@ -166,11 +198,13 @@ void Character::levelUp(int hInc, int mInc, int pInc, int kInc, int lInc) {
     this->level++;
     this->maxHp += hInc;
     this->maxMp += mInc;
-    this->hp = this->maxHp;
-    this->mp = this->maxMp;
     this->power += pInc;
     this->knowledge += kInc;
     this->luck += lInc;
+
+    // Reset hp and mp
+    this->hp = this->maxHp;
+    this->mp = this->maxMp;
 }
 
 
@@ -217,6 +251,21 @@ void Character::printActive() {
         char skillCount = 'A';
         for(int i = 0; i < this->skills.size(); i++){
             cout << ", " << skillCount << ". " << this->skills[i].getName();
+            switch (skills[i].getcostType())
+            {
+                case 0:
+                    cout << " [MP" << skills[i].getCostMp() << "]";
+                    break;
+                case 1:
+                    cout << " [HP" << skills[i].getCostHp() << "]";
+                    break;
+                case 2:
+                    cout << " [Set HP to " << skills[i].getSetHp() << "]";
+                    break;
+                case 3:
+                    cout << " [Set MP to " << skills[i].getSetHp() << "]";
+                    break;
+            }
             skillCount++;
         }
     }
@@ -231,15 +280,22 @@ void Character::beatMonster(int exp) {
 
 class Warrior : public Character {
 private:
-    static const int HP_LV = 50;
-    static const int MP_LV = 30;
-    static const int PO_LV = 10;
-    static const int KN_LV = 5;
+    static const int HP_INIT= 60;
+    static const int MP_INIT= 30;
+    static const int PO_INIT= 17;
+    static const int KN_INIT= 0;
+    static const int LU_INIT= 5;
+
+    static const int HP_LV = 30;
+    static const int MP_LV = 20;
+    static const int PO_LV = 7;
+    static const int KN_LV = 0;
     static const int LU_LV = 5;
     
 
 public:
-    Warrior(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV, lv * KN_LV, lv * LU_LV) {}
+    Warrior(string n, int lv = 1)
+    : Character(n, lv, HP_INIT + (lv - 1) * HP_LV, MP_INIT + (lv - 1) * MP_LV, PO_INIT + (lv - 1) * PO_LV, KN_INIT + (lv - 1) * KN_LV, LU_INIT + (lv - 1) * LU_LV) {}
     void print() { cout << "Warrior "; Character::print(); }
     int getClass() { return 1; }
     void addSkill(Skill s) { skills.push_back(s); }
@@ -273,14 +329,21 @@ void Warrior::active(char activeCode, Character* monster) {
 
 class Wizard : public Character {
 private:
-    static const int HP_LV = 30;
-    static const int MP_LV = 100;
+    static const int HP_INIT= 40;
+    static const int MP_INIT= 60;
+    static const int PO_INIT= 4;
+    static const int KN_INIT= 15;
+    static const int LU_INIT= 7;
+
+    static const int HP_LV = 20;
+    static const int MP_LV = 10;
     static const int PO_LV = 4;
-    static const int KN_LV = 15;
+    static const int KN_LV = 10;
     static const int LU_LV = 7;
 
 public:
-    Wizard(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV, lv * KN_LV, lv * LU_LV) {}
+    Wizard(string n, int lv = 1) 
+    : Character(n, lv, HP_INIT + (lv - 1) * HP_LV, MP_INIT + (lv - 1) * MP_LV, PO_INIT + (lv - 1) * PO_LV, KN_INIT + (lv - 1) * KN_LV, LU_INIT + (lv - 1) * LU_LV) {}
     void print() { cout << "Wizard "; Character::print(); }
     int getClass() { return 2; }
     void active(char activeCode, Character* monster);
@@ -313,14 +376,21 @@ void Wizard::active(char activeCode, Character* monster) {
 
 class Healer : public Character {
 private:
-    static const int HP_LV = 30;
-    static const int MP_LV = 80;
+    static const int HP_INIT= 30;
+    static const int MP_INIT= 30;
+    static const int PO_INIT= 1;
+    static const int KN_INIT= 20;
+    static const int LU_INIT= 5;
+
+    static const int HP_LV = 20;
+    static const int MP_LV = 10;
     static const int PO_LV = 1;
-    static const int KN_LV = 10;
+    static const int KN_LV = 20;
     static const int LU_LV = 7;
 
 public:
-    Healer(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV, lv * KN_LV, lv * LU_LV) {}
+    Healer(string n, int lv = 1) 
+    : Character(n, lv, HP_INIT + (lv - 1) * HP_LV, MP_INIT + (lv - 1) * MP_LV, PO_INIT + (lv - 1) * PO_LV, KN_INIT + (lv - 1) * KN_LV, LU_INIT + (lv - 1) * LU_LV) {}
     void print() { cout << "Healer "; Character::print(); }
     int getClass() { return 3; }
     void active(char activeCode, Character* monster, Team* playerTeam);
@@ -337,6 +407,12 @@ public:
 
 class Monster : public Character {
 private:
+    static const int HP_INIT= 80;
+    static const int MP_INIT= 0;
+    static const int PO_INIT= 5;
+    static const int KN_INIT= 0;
+    static const int LU_INIT= 5;
+
     static const int HP_LV = 80;
     static const int MP_LV = 100;
     static const int PO_LV = 5;
@@ -344,7 +420,8 @@ private:
     static const int LU_LV = 7;
 
 public:
-    Monster(string n, int lv = 1) : Character(n, lv, lv * HP_LV, lv * MP_LV, lv * PO_LV * (1 + (lv - 1) * 0.2), lv * KN_LV, lv * LU_LV) {}
+    Monster(string n, int lv = 1);
+    Monster(string n, int hp, int power) : Character(n, 10, hp, 100, power, 10, 5) {}
     void print() { cout << "Monster: HP=" << hp << ", Attack=" << power << endl; }
     int getAttack() { return power; }
     int getExp(int luck);
@@ -353,8 +430,16 @@ public:
 
 };
 
+Monster::Monster(string n, int lv){
+    this->name = "No Name";
+    this->level = lv;
+    this->power = PO_INIT + (lv - 1) * PO_LV * (1 + lv / 3);
+    this->maxHp = HP_INIT + (lv - 1) * HP_LV * (1 + lv / 3);
+    this->hp = this->maxHp;
+}
+
 int Monster::getExp(int luck) {
-    return this->level * 500 + rand() % luck;
+    return this->level * 400 + rand() % luck;
 }
 
 int Monster::getMoney(int luck) {
@@ -375,6 +460,7 @@ public:
 	void addWizard(string name, int lv);
     void addHealer(string name, int lv);
     void heal(int id, int amount);
+    void replyMP(int id, int amount);
     void boostPower(int id);
     void boostKnowledge(int id);
     void printMember(int id);
@@ -437,6 +523,10 @@ void Team::memberBeatMonster(string name, int exp)
 
 void Team::heal(int id, int amount) {
     member[id - 1]->heal(amount);
+}
+
+void Team::replyMP(int id, int amount) {
+    member[id - 1]->replyMP(amount);
 }
 
 void Team::boostPower(int id) {
@@ -587,39 +677,47 @@ vector<Skill>* getskillsByClass(vector<Skill> skills, int classType) {
 
 bool battle(Team* playerTeam, Monster* monster, int& money) {
     bool playerLose = false;
+
     int memberCount = playerTeam->getMemberCount();
     char actions[MAX_TEAM_MEMBER];
     int unableToSelect[MAX_TEAM_MEMBER];
 
-    for(int i = 0; i < MAX_TEAM_MEMBER; i++){
-        if(i >= memberCount || playerTeam->getMember(i) == nullptr || playerTeam->getMember(i)->getHP() <= 0){
+    // Initialize actions and unableToSelect
+    for (int i = 0; i < MAX_TEAM_MEMBER; ++i) {
+        if (i >= memberCount || playerTeam->getMember(i) == nullptr ||
+            playerTeam->getMember(i)->getHP() <= 0) {
             unableToSelect[i] = i;
             actions[i] = '!';
         } else {
             unableToSelect[i] = -1;
             actions[i] = '0';
         }
-
     }
 
-    cout << "A wild monster appears!\n";
+    // Start battle
+    cout << "A wild " << monster->getName() << " appears!\n";
     monster->print();
     playerTeam->print();
     wait("Press enter to start the battle...");
     cout << "\033[2J\033[1;1H";
 
+    // Battle loop
     while (monster->getHP() > 0 && !playerLose) {
+        // Monster's turn
         monster->print();
         int targetIndex = getRandenNum(memberCount, unableToSelect, memberCount);
         int totalDamage = monster->getAttack();
-        if(actions[targetIndex] == '2'){
+
+        // check if the target is defending
+        if (actions[targetIndex] == '2') {
             totalDamage *= 0.2;
         }
+
         Character* target = playerTeam->getMember(targetIndex);
         target->setHP(target->getHP() - totalDamage);
         cout << "Monster attacks " << targetIndex + 1 << ". " << target->getName() << " for " << totalDamage << " damage!\n" << endl;
 
-        // ?嚙範??嚙瞌嚙稻嚙踝蕭嚙踝蕭?嚙窯
+        // Check if player lost
         playerLose = true;
         for (int i = 0; i < playerTeam->getMemberCount(); ++i) {
             if (playerTeam->getMember(i)->getHP() > 0) {
@@ -629,9 +727,11 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
         }
         if (playerLose) break;
 
+        // Player's turn
         cout << "Choose actions for your team:\n";
         playerTeam->print();
         cout << "\n";
+
         for (int i = 0; i < playerTeam->getMemberCount(); ++i) {
             Character* member = playerTeam->getMember(i);
 
@@ -645,19 +745,23 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
             cout << i + 1 << ". " << member->getName();
             member->printActive();
             cin >> actions[i];
+
             while (1) {
                 int skillIndex = actions[i] - 'A';
+
                 if (actions[i] == '1' || actions[i] == '2') break;
-                if (actions[i] >= 'A' && actions[i] <= 'A' + member->getSkillCount() && member->useSkill(skillIndex, playerTeam)) break;
-                
+
+                if (actions[i] >= 'A' && actions[i] <= 'A' + member->getSkillCount() &&
+                    member->useSkill(skillIndex, playerTeam)) break;
+
                 cout << "Invalid action. Choose again: ";
                 cin >> actions[i];
             }
         }
 
-        // ?嚙賣玩嚙窮嚙踝蕭?
+        // Player's skill effects
         for (int i = 0; i < playerTeam->getMemberCount(); ++i) {
-            if (actions[i] == '!') continue; 
+            if (actions[i] == '!') continue;
 
             Character* member = playerTeam->getMember(i);
 
@@ -669,7 +773,7 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
         monster->print();
         wait();
 
-        // ?嚙範嚙褒迎蕭嚙瞌嚙稻嚙瞋??
+        // Check if monster is defeated
         if (monster->getHP() <= 0) {
             cout << "Monster defeated!\n";
             int totalExp = monster->getExp(playerTeam->getMember(0)->getLuck());
@@ -682,6 +786,7 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
         cout << "\033[2J\033[1;1H";
     }
 
+    // Print battle result
     if (playerLose) {
         cout << "Your team has been defeated...\n";
     } else {
@@ -695,110 +800,164 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
 
 void shop(Team* playerTeam, int& money) {
     const int shopItem = 3;
-    cout << "You have " << money << " gold\n";
-    cout << "Welcome to the shop!\n1. Heal (30 gold)\n2. Power Boost (50 gold)\n3. knowledge Boost (50 gold)\n0. Exit shop\nChoose an option: ";
-    int choice, memberChoice;
-    bool canBuy = true;
-    cin >> choice;
+    int memberChoice = -1;
+    cout << "Welcome to the shop!\n";
 
-    switch (choice)
+    // Shop loop
+    while (true)
     {
-    case 1:
-        if (money < 30) {
-            canBuy = false;
+        playerTeam->print();
+        cout << "You have " << money << " gold\n";
+        cout << "1. Heal Potion +50HP (20 gold)\n";
+        cout << "2. MP potion +50MP (20 gold)\n";
+        cout << "3. Power Boost +5%Power (60 gold)\n";
+        cout << "4. knowledge Boost +5%knoledge (60 gold)\n";
+        cout << "0. Exit shop\nChoose an option: ";
+        int choice;
+        cin >> choice;
+
+        // Exit shop
+        if (choice == 0)
+        {
+            cout << "Goodbye!\n";
+            wait();
             break;
         }
 
-        cout << "\n" << endl;
-        playerTeam->print();
-        cout << "choose a member to heal: ";
-        memberChoice = limitChoose(playerTeam->getMemberCount(), 1);
-        playerTeam->heal(memberChoice, 50);
-        cout << "Member " << memberChoice << " has been healed\n";
-        playerTeam->printMember(memberChoice);
+        // Buy item
+        switch (choice)
+        {
+        case 1:
+            // Check if player has enough gold
+            if (money < 20)
+            {
+                cout << "Not enough gold!\n";
+                wait();
+                continue;
+            }
 
-        money -= 30;
+            cout << "\n" << endl;
+            playerTeam->print();
+            cout << "choose a member to heal: ";
+            memberChoice = limitChoose(playerTeam->getMemberCount(), 1); // Limit the choice to a valid member
 
-        break;
-    
-    case 2:
-        if (money < 50) {
-            canBuy = false;
+            // Heal
+            playerTeam->heal(memberChoice, 50);
+            cout << "Member " << memberChoice << " has been healed\n";
+            playerTeam->printMember(memberChoice);
+
+            money -= 20;
+
             break;
+
+        case 2:
+            // Check if player has enough gold
+            if (money < 20)
+            {
+                cout << "Not enough gold!\n";
+                wait();
+                continue;
+            }
+
+            cout << "\n" << endl;
+            playerTeam->print();
+            cout << "choose a member to heal: ";
+            memberChoice = limitChoose(playerTeam->getMemberCount(), 1); // Limit the choice to a valid member
+
+            // restore MP
+            playerTeam->replyMP(memberChoice, 50);
+            cout << "Member " << memberChoice << "'s MP has been restored!\n";
+            playerTeam->printMember(memberChoice);
+
+            money -= 20;
+
+            break;
+
+        case 3:
+            // Check if player has enough gold
+            if (money < 50)
+            {
+                cout << "Not enough gold!\n";
+                wait();
+                continue;
+            }
+
+            cout << "\n" << endl;
+            playerTeam->print();
+            cout << "choose a member to boost poser: ";
+            memberChoice = limitChoose(playerTeam->getMemberCount(), 1); // Limit the choice to a valid member
+
+            // Boost power
+            playerTeam->boostPower(memberChoice);
+            cout << "Member " << memberChoice << " has been boost\n";
+            playerTeam->printMember(memberChoice);
+
+            money -= 50;
+
+            break;
+
+        case 4:
+            // Check if player has enough gold
+            if (money < 50)
+            {
+                cout << "Not enough gold!\n";
+                wait();
+                continue;
+            }
+
+            cout << "\n" << endl;
+            playerTeam->print();
+            cout << "choose a member to boost poser: ";
+            memberChoice = limitChoose(playerTeam->getMemberCount(), 1); // Limit the choice to a valid member
+
+            // Boost knowledge
+            playerTeam->boostKnowledge(memberChoice);
+            cout << "Member " << memberChoice << " has been boost\n";
+            playerTeam->printMember(memberChoice);
+
+            money -= 50;
+
+            break;
+
+        default:
+            // Invalid choice
+            cout << "Invalid choice!\n";
+            wait();
+            continue;
         }
 
-        cout << "\n" << endl;
-        playerTeam->print();
-        cout << "choose a member to boost poser: ";
-        memberChoice = limitChoose(playerTeam->getMemberCount(), 1);
-        playerTeam->boostPower(memberChoice);
-        cout << "Member " << memberChoice << " has been boost\n";
-        playerTeam->printMember(memberChoice);
-        money -= 50;
-
-        break;
-
-    case 3:
-        if (money < 50) {
-            canBuy = false;
-            break;
-        }
-        
-        cout << "\n" << endl;
-        playerTeam->print();
-        cout << "choose a member to boost poser: ";
-        memberChoice = limitChoose(playerTeam->getMemberCount(), 1);
-        playerTeam->boostKnowledge(memberChoice);
-        cout << "Member " << memberChoice << " has been boost\n";
-        playerTeam->printMember(memberChoice);
-        money -= 50;
-
-        break;
-    
-    }
-
-    if(choice != 0 && choice <= shopItem && canBuy){
         cout << "You now have " << money << " gold\n";
         wait();
         cout << "\033[2J\033[1;1H";
-        shop(playerTeam, money);
-    } else if (!canBuy) {
-        cout << "Not enough gold!\n";
-        wait();
-        cout << "\033[2J\033[1;1H";
-        shop(playerTeam, money);
-    } else if (choice > shopItem) {
-        cout << "Invalid choice!\n";
-        wait();
-        cout << "\033[2J\033[1;1H";
-        shop(playerTeam, money);
-    } else if (choice == 0) {
-        cout << "Goodbye!\n";
-        wait();
     }
 
 }
 
 void summon(Team* playerTeam, int& money, int& monsterCount) {
+    const int summonCost = 50 + monsterCount * 10; // Increase cost with each monster
+
     cout << "You have a chance to summon hero!\n";
     cout << "You have " << money << " gold\n";
-    cout << "1. Warrior (" << 50 + monsterCount * 10 << " gold)\n";
-    cout << "2. Wizard (" << 50 + monsterCount * 10 << " gold)\n";
-    cout << "3. Healer (" << 50 + monsterCount * 10 << " gold)\n";
+    cout << "1. Warrior (" << summonCost << " gold)\n";
+    cout << "2. Wizard (" << summonCost << " gold)\n";
+    cout << "3. Healer (" << summonCost << " gold)\n";
     cout << "0. Exit\n";
     cout << "Choose the hero you want to summon:\n";
-    int choice = limitChoose(3, 0);
+    int choice = limitChoose(3, 0); // Limit the choice to 1, 2, or 3
 
-    if (money < 50 + monsterCount * 10) {
+    // Exit
+    if (choice == 0) {
+        return;
+    }
+
+    // Check if player has enough gold
+    if (money < summonCost) {
         cout << "Not enough gold!\n";
         wait();
         return;
     }
 
-    if(choice == 0){
-        return;
-    }
-
+    // Get new member name
     cout << "Enter new member name: ";
     string name;
     cin.ignore();
@@ -806,15 +965,21 @@ void summon(Team* playerTeam, int& money, int& monsterCount) {
 
     cout << "\033[2J\033[1;1H";
 
-    money -= 50 + monsterCount * 10;
+    money -= summonCost; // Reduce gold
 
-    if(choice == 1){
+    // Add hero to team and print
+    switch (choice) {
+    case 1:
         playerTeam->addWarrior(name, monsterCount + 1);
-    } else if (choice == 2) {
+        break;
+    case 2:
         playerTeam->addWizard(name, monsterCount + 1);
-    } else if (choice == 3) {
+        break;
+    case 3:
         playerTeam->addHealer(name, monsterCount + 1);
+        break;
     }
+
     playerTeam->print();
     wait();
 }
@@ -822,7 +987,7 @@ void summon(Team* playerTeam, int& money, int& monsterCount) {
 void training(Team* playerTeam, int& money, vector<Skill> skills) {
     cout << "You have a chance to train your hero!\n";
     cout << "You have " << money << " gold\n";
-    cout << "Do yout want learn some skill? (100 gold)\n";
+    cout << "Do you want to learn a skill? (100 gold)\n";
     cout << "Y/N: ";
     char wantTrain;
     cin >> wantTrain;
@@ -831,25 +996,26 @@ void training(Team* playerTeam, int& money, vector<Skill> skills) {
         return;
     }
 
-    if(money < 100){
+    if (money < 100) {
         cout << "Not enough gold!\n";
         wait();
         return;
     }
 
+    cout << "\033[2J\033[1;1H";
+
     playerTeam->print();
     cout << "Choose the hero you want to train: ";
     int choice;
     choice = limitChoose(playerTeam->getMemberCount(), 1);
-    cout << "\033[2J\033[1;1H";
 
-    Character* choosedHero = playerTeam->getMember(choice - 1);
-    
-    vector<Skill>* skillsByClass = getskillsByClass(skills, choosedHero->getClass());
+    Character* chosenHero = playerTeam->getMember(choice - 1);
+
+    vector<Skill>* skillsByClass = getskillsByClass(skills, chosenHero->getClass());
     printSkillList(*skillsByClass);
-    cout << "Choose the skill you want to learn:\n";
+    cout << "Choose the skill you want to learn: ";
     int skillChoice = limitChoose(skillsByClass->size(), 1);
-    choosedHero->addSkill(skillsByClass->at(skillChoice - 1));
+    chosenHero->addSkill(skillsByClass->at(skillChoice - 1));
 
     money -= 100;
     cout << "You now have " << money << " gold\n";
@@ -862,8 +1028,8 @@ void training(Team* playerTeam, int& money, vector<Skill> skills) {
 
 vector<Skill> initializeSkills() {
     return {
-        Skill("Warrior roar", "Deals danage equal to 200% max HP", 1, 30, 0, 0, 0, 2, 0, 0, 1),
-        Skill("Last Hope", "Set HP to 1 to deal 1000% power damage", 2, 0, 0, 1, 0, 10, 0, 2, 1),
+        Skill("Warrior roar", "Deals danage equal to 200% power damage", 1, 30, 0, 0, 0, 2, 0, 0, 1),
+        Skill("Last Hope", "Set HP to 0 to deal 1000% power damage", 2, 0, 0, 0, 0, 10, 0, 2, 1),
         Skill("Wizard Fireball", "Deals danage equal to 200% knowledge", 3, 30, 0, 0, 0, 2, 0, 0, 2),
         Skill("Ice Storm", "Deals danage equal to 300% knowledge", 4, 50, 0, 0, 0, 3, 0, 0, 2),
         Skill("Healer Heal", "Heal one hero equal to 300% knowledge", 5, 30, 0, 0, 0, 3, 2, 0, 3),
@@ -872,11 +1038,12 @@ vector<Skill> initializeSkills() {
 }
 
 int main() {
-    srand(time(0));
-    const int EVENT_AMOUNT = 5;
+    srand(time(0)); // Seed the random number generator
+    const int EVENT_AMOUNT = 5; // Number of possible events
     string teamName, leaderName;
-    const vector<Skill> skills = initializeSkills();
+    const vector<Skill> skills = initializeSkills(); // Initialize skills
 
+    // Get player team info
     cout << "Enter your Team name: ";
     getline(cin, teamName);
     cout << "Enter your Team leader name: ";
@@ -889,77 +1056,91 @@ int main() {
 
     Team playerParty(teamName);
 
+    // Add hero to team
     if(choice == 1){
-        playerParty.addWarrior(leaderName, 10);
+        playerParty.addWarrior(leaderName, 1);
     }
     else{
-        playerParty.addWizard(leaderName, 10);
+        playerParty.addWizard(leaderName, 1);
     }
-
-    playerParty.addWarrior("tool1", 10);
-    playerParty.addHealer("tool2", 10);
-    playerParty.addHealer("tool3", 10);
-
-    
-    playerParty.getMember(0)->addSkill(skills[2]);
-    playerParty.getMember(1)->addSkill(skills[1]);
-    playerParty.getMember(2)->addSkill(skills[4]);
-    playerParty.getMember(2)->addSkill(skills[5]);
-    playerParty.getMember(3)->addSkill(skills[4]);
-    playerParty.getMember(3)->addSkill(skills[5]);
-    
-
 
     playerParty.print();
     wait("Press enter to start the game...");
     cout << "\033[2J\033[1;1H";
 
-    int money = 1000;
-    int monsterCount = 10;
+    int money = 100;
+    int monsterCount = 0;
     int eventCount = 0;
     int limitEvent[2] = {-1, -1};
 
-    while (1) {
-        int event = getRandenNum(EVENT_AMOUNT, limitEvent, EVENT_AMOUNT);
+    // Game loop
+    while (true) {
+        int event = getRandenNum(EVENT_AMOUNT, limitEvent, EVENT_AMOUNT); // Get random event 
+
+        // forced to battle without battle three times
         if(eventCount % 3 == 0 && eventCount != 0){
             event = 0;
         }
 
         cout << "\033[2J\033[1;1H";
 
+
+        // Check if monster count has reached 10 to battle boss
         if (monsterCount >= 10) {
-            Monster boss("Boss", 30);
+            Monster boss("Boss", 3600, 1000);
             bool lose = battle(&playerParty, &boss, money); 
             lose ? wait("Game Over!") : wait("You win!");
             break;
         }
-
-        if (event == 0) {
-            Monster monster("bird", monsterCount + 1);
-            bool lose = battle(&playerParty, &monster, money);
-            lose ? wait("Game Over!") : wait();
-            if(lose) break;
-            eventCount = 0;
-            monsterCount++;
-        } else if (event == 1) {
-            shop(&playerParty, money);
-        } else if (event == 2) {
-            money += 50;
-            cout << "You found a treasure chest! +50 gold\n";
-            cout << "You now have " << money << " gold\n";
-            wait();
-        } else if (event == 3) {
-            summon(&playerParty, money, monsterCount);
-            if(playerParty.getMemberCount() >= MAX_TEAM_MEMBER){
-                limitEvent[1] = 3;
+        
+        bool playerLose = false;
+        switch (event) {
+            case 0: {
+                Monster monster("monster", monsterCount + 1);
+                playerLose = battle(&playerParty, &monster, money);
+                playerLose ? wait("Game Over!") : wait();
+                eventCount = 0; // Reset event count
+                monsterCount++; // Increase monster count
+                break;
             }
-        } else if (event == 4) {
-            training(&playerParty, money, skills);
+
+            // shop
+            case 1: {
+                shop(&playerParty, money);
+                break;
+            }
+
+            // treasure
+            case 2: {
+                money += 50;
+                cout << "You found a treasure chest! +50 gold\n";
+                cout << "You now have " << money << " gold\n";
+                wait();
+                break;
+            }
+
+            // summon
+            case 3: {
+                summon(&playerParty, money, monsterCount);
+
+                // Check if player has reached the limit
+                if(playerParty.getMemberCount() >= MAX_TEAM_MEMBER){
+                    limitEvent[1] = 3;
+                }
+                break;
+            }
+
+            // training
+            case 4: {
+                training(&playerParty, money, skills);
+                break;
+            }
         }
 
+        if(playerLose) break; // End game if player loses
 
         eventCount++;
-        limitEvent[0] = event;
+        limitEvent[0] = event; // Update limit event
     }
 
     return 0;
