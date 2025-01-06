@@ -1076,7 +1076,7 @@ int main() {
     }
 
     playerParty.print();
-    wait("Press enter to start the game...");
+    wait("Press anyKey to start the game...");
     cout << "\033[2J\033[1;1H";
 
     int money = 100;
