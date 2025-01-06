@@ -431,7 +431,7 @@ public:
 };
 
 Monster::Monster(string n, int lv){
-    this->name = "No Name";
+    this->name = n;
     this->level = lv;
     this->power = PO_INIT + (lv - 1) * PO_LV * (1 + lv / 3);
     this->maxHp = HP_INIT + (lv - 1) * HP_LV * (1 + lv / 3);
@@ -1139,7 +1139,7 @@ int main() {
 
                 // Check if player has reached the limit
                 if(playerParty.getMemberCount() >= MAX_TEAM_MEMBER){
-                    limitEvent[4] = 3;
+                    limitEvent[3] = 3;
                 }
                 break;
             }
