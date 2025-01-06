@@ -652,13 +652,13 @@ int getRandenNum(int maxNum, int limitList[], int len){
 
 // limit the choice to a valid number
 int limitChoose(int maxNum, int minNum) {
-    int choice;
+    char choice;
     cin >> choice;
-    while (choice < minNum || choice > maxNum) {
+    while (choice < minNum + '0' || choice > maxNum + '0') {
         cout << "Invalid choice. Choose again: ";
         cin >> choice;
     }
-    return choice;
+    return choice - '0';
 }
 
 // print the skill list
@@ -752,11 +752,13 @@ bool battle(Team* playerTeam, Monster* monster, int& money) {
             member->printActive();
             cin >> actions[i];
 
-            while (1) {
-                int skillIndex = actions[i] - 'A';
+            while (1) {      
+                // if is alpha or lower case, convert to upper case
+                if(isalpha(actions[i]) && islower(actions[i])) actions[i] = toupper(actions[i]);
 
                 if (actions[i] == '1' || actions[i] == '2') break;
 
+                int skillIndex = actions[i] - 'A';
                 if (actions[i] >= 'A' && actions[i] <= 'A' + member->getSkillCount() &&
                     member->useSkill(skillIndex, playerTeam)) break;
 
@@ -930,6 +932,7 @@ void shop(Team* playerTeam, int& money) {
             // Invalid choice
             cout << "Invalid choice!\n";
             wait();
+            cout << "\033[2J\033[1;1H";
             continue;
         }
 
@@ -1049,7 +1052,7 @@ vector<Skill> initializeSkills() {
 
 // Main function
 int main() {
-    srand(time(0)); // Seed the random number generator
+    srand(time(NULL)); // Seed the random number generator
     const int EVENT_AMOUNT = 5; // Number of possible events
     string teamName, leaderName;
     const vector<Skill> skills = initializeSkills(); // Initialize skills
@@ -1061,8 +1064,7 @@ int main() {
     getline(cin, leaderName);
 
     cout << "Choose your class:\n1. Warrior\n2. Wizard\nChoose: ";
-    int choice;
-    cin >> choice;
+    int choice = limitChoose(2, 1);
     cout << "\033[2J\033[1;1H";
 
     Team playerParty(teamName);
@@ -1082,11 +1084,11 @@ int main() {
     int money = 100;
     int monsterCount = 0;
     int eventCount = 0;
-    int limitEvent[2] = {-1, -1};
+    int limitEvent[4] = {-1, -1, -1, -1}; // Limit event
 
     // Game loop
     while (true) {
-        int event = getRandenNum(EVENT_AMOUNT, limitEvent, EVENT_AMOUNT); // Get random event 
+        int event = getRandenNum(EVENT_AMOUNT, limitEvent, 4); // Get random event 
 
         // forced to battle without battle three times
         if(eventCount % 3 == 0 && eventCount != 0){
@@ -1111,6 +1113,7 @@ int main() {
                 playerLose = battle(&playerParty, &monster, money);
                 playerLose ? wait("Game Over!") : wait();
                 eventCount = 0; // Reset event count
+                for(int i = 0; i < 3; i++) limitEvent[i] = -1; // Reset limit event
                 monsterCount++; // Increase monster count
                 break;
             }
@@ -1136,7 +1139,7 @@ int main() {
 
                 // Check if player has reached the limit
                 if(playerParty.getMemberCount() >= MAX_TEAM_MEMBER){
-                    limitEvent[1] = 3;
+                    limitEvent[4] = 3;
                 }
                 break;
             }
@@ -1151,7 +1154,7 @@ int main() {
         if(playerLose) break; // End game if player loses
 
         eventCount++;
-        limitEvent[0] = event; // Update limit event
+        limitEvent[eventCount] = event; // Update limit event
     }
 
     return 0;
